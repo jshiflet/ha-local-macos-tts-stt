@@ -12,6 +12,7 @@ from custom_components.sttbridge.const import (
     CONF_PORT,
     CONF_TOKEN,
     CONF_USE_HTTPS,
+    CONF_USE_SAY_ENDPOINT,
     DOMAIN,
 )
 
@@ -21,6 +22,7 @@ MOCK_CONFIG = {
     CONF_TOKEN: "test-token",
     CONF_USE_HTTPS: False,
     CONF_IGNORE_CERT_ERRORS: False,
+    CONF_USE_SAY_ENDPOINT: False,
 }
 
 @pytest.fixture

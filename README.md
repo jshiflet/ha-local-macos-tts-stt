@@ -75,7 +75,7 @@ curl http://localhost:8787/voices
    - **(Optional) Token:** If you enabled auth on the server (Required if your STTBridge app is listening on anything other than 127.0.0.1)
    - **Use HTTPS:** Enforces HTTPS/WSS connectivity
    - **Ignore Certificate Errors:** Ignores any certificate errors when connecting via HTTPS/WSS
-   - **Use Say:** If you wish to use the macOS 'say' command to render Siri voices
+   - **Use /say endpoint:** Sends TTS requests to `/say` instead of `/tts` to use the macOS `say` command path
 
 Use **Ignore Certificate Errors** only for trusted local bridge servers, such as a macOS bridge using a self-signed certificate. Leave it disabled when the server has a trusted certificate.
 

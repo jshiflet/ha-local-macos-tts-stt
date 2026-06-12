@@ -10,6 +10,7 @@ from .const import (
     CONF_IGNORE_CERT_ERRORS,
     CONF_PORT,
     CONF_USE_HTTPS,
+    CONF_USE_SAY_ENDPOINT,
 )
 
 
@@ -28,6 +29,11 @@ def websocket_url_from_config(config: dict[str, Any]) -> str:
     """Return the WS(S) streaming URL for the bridge."""
     scheme = "wss" if config.get(CONF_USE_HTTPS, False) else "ws"
     return f"{scheme}://{config[CONF_HOST]}:{config[CONF_PORT]}/stt/stream"
+
+
+def tts_endpoint_path_from_config(config: dict[str, Any]) -> str:
+    """Return the selected TTS endpoint path."""
+    return "/say" if config.get(CONF_USE_SAY_ENDPOINT, False) else "/tts"
 
 
 def aiohttp_ssl(config: dict[str, Any]) -> bool | None:

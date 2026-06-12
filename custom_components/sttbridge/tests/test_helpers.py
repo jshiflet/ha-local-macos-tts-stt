@@ -5,10 +5,12 @@ from custom_components.sttbridge.const import (
     CONF_IGNORE_CERT_ERRORS,
     CONF_PORT,
     CONF_USE_HTTPS,
+    CONF_USE_SAY_ENDPOINT,
 )
 from custom_components.sttbridge.helpers import (
     aiohttp_ssl_kwargs,
     base_url_from_config,
+    tts_endpoint_path_from_config,
     websocket_url_from_config,
 )
 
@@ -22,6 +24,7 @@ def test_urls_default_to_plain_http() -> None:
     """Test plain HTTP and WebSocket URLs."""
     assert base_url_from_config(MOCK_CONFIG) == "http://1.2.3.4:8787"
     assert websocket_url_from_config(MOCK_CONFIG) == "ws://1.2.3.4:8787/stt/stream"
+    assert tts_endpoint_path_from_config(MOCK_CONFIG) == "/tts"
     assert aiohttp_ssl_kwargs(MOCK_CONFIG) == {}
 
 
@@ -46,3 +49,13 @@ def test_https_can_ignore_certificate_errors() -> None:
     }
 
     assert aiohttp_ssl_kwargs(config) == {"ssl": False}
+
+
+def test_tts_can_use_say_endpoint() -> None:
+    """Test selecting the /say TTS endpoint."""
+    config = {
+        **MOCK_CONFIG,
+        CONF_USE_SAY_ENDPOINT: True,
+    }
+
+    assert tts_endpoint_path_from_config(config) == "/say"

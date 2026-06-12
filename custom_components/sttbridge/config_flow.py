@@ -16,6 +16,7 @@ from .const import (
     CONF_PORT,
     CONF_TOKEN,
     CONF_USE_HTTPS,
+    CONF_USE_SAY_ENDPOINT,
     DEFAULT_HOST,
     DEFAULT_PORT,
     DOMAIN,
@@ -31,6 +32,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Optional(CONF_TOKEN): str,
         vol.Optional(CONF_USE_HTTPS, default=False): bool,
         vol.Optional(CONF_IGNORE_CERT_ERRORS, default=False): bool,
+        vol.Optional(CONF_USE_SAY_ENDPOINT, default=False): bool,
     }
 )
 
@@ -46,6 +48,10 @@ def options_schema(config: dict[str, Any]) -> vol.Schema:
             vol.Optional(
                 CONF_IGNORE_CERT_ERRORS,
                 default=config.get(CONF_IGNORE_CERT_ERRORS, False),
+            ): bool,
+            vol.Optional(
+                CONF_USE_SAY_ENDPOINT,
+                default=config.get(CONF_USE_SAY_ENDPOINT, False),
             ): bool,
         }
     )

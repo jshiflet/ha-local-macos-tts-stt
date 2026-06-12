@@ -9,7 +9,8 @@
                     "port": "Port",
                     "token": "Token (optional)",
                     "use_https": "HTTPS verwenden",
-                    "ignore_cert_errors": "Zertifikatsfehler ignorieren"
+                    "ignore_cert_errors": "Zertifikatsfehler ignorieren",
+                    "use_say_endpoint": "/say-Endpunkt verwenden"
                 }
             }
         },
@@ -28,7 +29,8 @@
                 "description": "Ändere, wie Home Assistant eine Verbindung zu deinem STT Bridge Server herstellt.",
                 "data": {
                     "use_https": "HTTPS verwenden",
-                    "ignore_cert_errors": "Zertifikatsfehler ignorieren"
+                    "ignore_cert_errors": "Zertifikatsfehler ignorieren",
+                    "use_say_endpoint": "/say-Endpunkt verwenden"
                 }
             }
         },

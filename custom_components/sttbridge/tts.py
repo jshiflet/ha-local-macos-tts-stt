@@ -12,7 +12,11 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import CONF_TOKEN, DOMAIN
-from .helpers import aiohttp_ssl_kwargs, base_url_from_config
+from .helpers import (
+    aiohttp_ssl_kwargs,
+    base_url_from_config,
+    tts_endpoint_path_from_config,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,12 +30,14 @@ async def async_setup_entry(
     data = hass.data[DOMAIN][config_entry.entry_id]
     token = data.get(CONF_TOKEN)
     base_url = base_url_from_config(data)
+    endpoint_path = tts_endpoint_path_from_config(data)
 
     async_add_entities(
         [
             STTBridgeProvider(
                 hass,
                 base_url,
+                endpoint_path,
                 token,
                 aiohttp_ssl_kwargs(data),
                 config_entry,
@@ -47,6 +53,7 @@ class STTBridgeProvider(TextToSpeechEntity):
         self,
         hass: HomeAssistant,
         base_url: str,
+        endpoint_path: str,
         token: str | None,
         ssl_kwargs: dict[str, bool],
         config_entry: ConfigEntry,
@@ -54,6 +61,7 @@ class STTBridgeProvider(TextToSpeechEntity):
         """Initialize the provider."""
         self.hass = hass
         self._base_url = base_url
+        self._endpoint_path = endpoint_path
         self._token = token
         self._ssl_kwargs = ssl_kwargs
         self._config_entry = config_entry
@@ -92,7 +100,7 @@ class STTBridgeProvider(TextToSpeechEntity):
 
         try:
             async with session.post(
-                f"{self._base_url}/tts",
+                f"{self._base_url}{self._endpoint_path}",
                 json=payload,
                 headers=headers,
                 **self._ssl_kwargs,
