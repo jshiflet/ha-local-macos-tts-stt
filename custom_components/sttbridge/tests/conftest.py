@@ -6,12 +6,21 @@ import pytest
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from custom_components.sttbridge.const import DOMAIN
+from custom_components.sttbridge.const import (
+    CONF_HOST,
+    CONF_IGNORE_CERT_ERRORS,
+    CONF_PORT,
+    CONF_TOKEN,
+    CONF_USE_HTTPS,
+    DOMAIN,
+)
 
 MOCK_CONFIG = {
-    "host": "1.2.3.4",
-    "port": 8787,
-    "token": "test-token",
+    CONF_HOST: "1.2.3.4",
+    CONF_PORT: 8787,
+    CONF_TOKEN: "test-token",
+    CONF_USE_HTTPS: False,
+    CONF_IGNORE_CERT_ERRORS: False,
 }
 
 @pytest.fixture

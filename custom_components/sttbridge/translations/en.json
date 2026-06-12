@@ -7,7 +7,9 @@
                 "data": {
                     "host": "Host",
                     "port": "Port",
-                    "token": "Token (optional)"
+                    "token": "Token (optional)",
+                    "use_https": "Use HTTPS",
+                    "ignore_cert_errors": "Ignore certificate errors"
                 }
             }
         },
@@ -17,6 +19,22 @@
         },
         "abort": {
             "already_configured": "This device is already configured."
+        }
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "STT Bridge connection options",
+                "description": "Change how Home Assistant connects to your STT Bridge server.",
+                "data": {
+                    "use_https": "Use HTTPS",
+                    "ignore_cert_errors": "Ignore certificate errors"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Failed to connect to the server. Check host and port.",
+            "unknown": "Unknown error occurred."
         }
     }
 }

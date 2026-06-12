@@ -11,7 +11,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
+from .const import CONF_TOKEN, DOMAIN
+from .helpers import aiohttp_ssl_kwargs, websocket_url_from_config
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,12 +24,19 @@ async def async_setup_entry(
 ) -> None:
     """Set up STT Bridge STT platform."""
     data = hass.data[DOMAIN][config_entry.entry_id]
-    host = data["host"]
-    port = data["port"]
-    token = data.get("token")
-    base_url = f"http://{host}:{port}"
+    token = data.get(CONF_TOKEN)
 
-    async_add_entities([STTBridgeSTTProvider(hass, base_url, token, config_entry)])
+    async_add_entities(
+        [
+            STTBridgeSTTProvider(
+                hass,
+                websocket_url_from_config(data),
+                token,
+                aiohttp_ssl_kwargs(data),
+                config_entry,
+            )
+        ]
+    )
 
 
 class STTBridgeSTTProvider(stt.SpeechToTextEntity):
@@ -37,14 +45,16 @@ class STTBridgeSTTProvider(stt.SpeechToTextEntity):
     def __init__(
         self,
         hass: HomeAssistant,
-        base_url: str,
+        websocket_url: str,
         token: str | None,
+        ssl_kwargs: dict[str, bool],
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the provider."""
         self.hass = hass
-        self._base_url = base_url
+        self._websocket_url = websocket_url
         self._token = token
+        self._ssl_kwargs = ssl_kwargs
         self._config_entry = config_entry
         self._attr_name = "STT/TTS Bridge STT"
         self._attr_unique_id = config_entry.entry_id
@@ -84,50 +94,51 @@ class STTBridgeSTTProvider(stt.SpeechToTextEntity):
         self, metadata: stt.SpeechMetadata, stream: stt.AudioStream
     ) -> stt.SpeechResult:
         """Process an audio stream using WebSocket for real-time streaming."""
-        # Use WebSocket URL for streaming
-        ws_url = self._base_url.replace("http://", "ws://") + "/stt/stream"
-        
         # Add language parameter
-        ws_url += f"?lang={metadata.language}"
-        
+        ws_url = f"{self._websocket_url}?lang={metadata.language}"
+
         headers = {}
         if self._token:
             headers["Authorization"] = f"Bearer {self._token}"
 
         session = async_get_clientsession(self.hass)
-        
+
         try:
             _LOGGER.debug("Connecting to WebSocket: %s", ws_url)
-            async with session.ws_connect(ws_url, headers=headers) as ws:
+            async with session.ws_connect(
+                ws_url, headers=headers, **self._ssl_kwargs
+            ) as ws:
                 # Start metadata message
-                await ws.send_json({
-                    "type": "start",
-                    "sampleRate": metadata.sample_rate.value,
-                    "channels": metadata.channel.value,
-                    "language": metadata.language
-                })
-                
+                await ws.send_json(
+                    {
+                        "type": "start",
+                        "sampleRate": metadata.sample_rate.value,
+                        "channels": metadata.channel.value,
+                        "language": metadata.language,
+                    }
+                )
+
                 # Stream audio chunks in real-time
                 chunk_count = 0
                 total_bytes = 0
-                
+
                 async for chunk in stream:
                     if chunk:
                         await ws.send_bytes(chunk)
                         chunk_count += 1
                         total_bytes += len(chunk)
                         _LOGGER.debug("Sent chunk %d (%d bytes)", chunk_count, len(chunk))
-                
+
                 # End stream
                 await ws.send_json({"type": "end"})
                 _LOGGER.info("Sent %d chunks (%d bytes total)", chunk_count, total_bytes)
-                
+
                 # Wait for final result
                 async for msg in ws:
                     if msg.type == aiohttp.WSMsgType.TEXT:
                         data = msg.json()
                         _LOGGER.debug("Received WebSocket message: %s", data)
-                        
+
                         msg_type = data.get("type")
                         if msg_type == "partial":
                             # Log partial results but don't return yet
@@ -146,11 +157,11 @@ class STTBridgeSTTProvider(stt.SpeechToTextEntity):
                     elif msg.type == aiohttp.WSMsgType.CLOSED:
                         _LOGGER.warning("WebSocket closed unexpectedly")
                         break
-                
+
                 # If we reach here without a final result, it's an error
                 _LOGGER.error("WebSocket closed without final result")
                 return stt.SpeechResult(None, stt.SpeechResultState.ERROR)
-                
+
         except aiohttp.ClientError as e:
             _LOGGER.error("WebSocket connection error: %s", e)
             return stt.SpeechResult(None, stt.SpeechResultState.ERROR)

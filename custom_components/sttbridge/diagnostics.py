@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import DOMAIN
+from .helpers import aiohttp_ssl_kwargs, base_url_from_config
 
 
 async def async_get_config_entry_diagnostics(
@@ -15,9 +16,8 @@ async def async_get_config_entry_diagnostics(
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
     data = hass.data[DOMAIN][entry.entry_id]
-    host = data["host"]
-    port = data["port"]
-    base_url = f"http://{host}:{port}"
+    base_url = base_url_from_config(data)
+    ssl_kwargs = aiohttp_ssl_kwargs(data)
 
     # Redact token
     config_data = {**entry.data}
@@ -32,7 +32,7 @@ async def async_get_config_entry_diagnostics(
     # Try to get health and voices
     session = async_get_clientsession(hass)
     try:
-        async with session.get(f"{base_url}/healthz") as resp:
+        async with session.get(f"{base_url}/healthz", **ssl_kwargs) as resp:
             diagnostics_data["health"] = {
                 "status": resp.status,
                 "body": await resp.text(),
@@ -41,10 +41,12 @@ async def async_get_config_entry_diagnostics(
         diagnostics_data["health"] = {"error": str(e)}
 
     try:
-        async with session.get(f"{base_url}/voices") as resp:
+        async with session.get(f"{base_url}/voices", **ssl_kwargs) as resp:
             diagnostics_data["voices"] = {
                 "status": resp.status,
-                "body": await resp.json() if resp.content_type == 'application/json' else await resp.text(),
+                "body": await resp.json()
+                if resp.content_type == "application/json"
+                else await resp.text(),
             }
     except Exception as e:
         diagnostics_data["voices"] = {"error": str(e)}

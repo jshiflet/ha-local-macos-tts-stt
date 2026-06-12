@@ -11,7 +11,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
+from .const import CONF_TOKEN, DOMAIN
+from .helpers import aiohttp_ssl_kwargs, base_url_from_config
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,12 +24,20 @@ async def async_setup_entry(
 ) -> None:
     """Set up STT Bridge TTS platform."""
     data = hass.data[DOMAIN][config_entry.entry_id]
-    host = data["host"]
-    port = data["port"]
-    token = data.get("token")
-    base_url = f"http://{host}:{port}"
+    token = data.get(CONF_TOKEN)
+    base_url = base_url_from_config(data)
 
-    async_add_entities([STTBridgeProvider(hass, base_url, token, config_entry)])
+    async_add_entities(
+        [
+            STTBridgeProvider(
+                hass,
+                base_url,
+                token,
+                aiohttp_ssl_kwargs(data),
+                config_entry,
+            )
+        ]
+    )
 
 
 class STTBridgeProvider(TextToSpeechEntity):
@@ -39,12 +48,14 @@ class STTBridgeProvider(TextToSpeechEntity):
         hass: HomeAssistant,
         base_url: str,
         token: str | None,
+        ssl_kwargs: dict[str, bool],
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the provider."""
         self.hass = hass
         self._base_url = base_url
         self._token = token
+        self._ssl_kwargs = ssl_kwargs
         self._config_entry = config_entry
         self._attr_name = "STT/TTS Bridge TTS"
         self._attr_unique_id = f"{config_entry.entry_id}_tts"
@@ -81,7 +92,10 @@ class STTBridgeProvider(TextToSpeechEntity):
 
         try:
             async with session.post(
-                f"{self._base_url}/tts", json=payload, headers=headers
+                f"{self._base_url}/tts",
+                json=payload,
+                headers=headers,
+                **self._ssl_kwargs,
             ) as resp:
                 if resp.status != 200:
                     _LOGGER.error(

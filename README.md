@@ -11,13 +11,14 @@ Use Apple's high-quality, **100% local** Speech Recognition and Text-to-Speech d
 - 🎯 **Native macOS Speech Recognition** - High-precision voice recognition
 - 🗣️ **Premium TTS Voices** - Natural-sounding Apple voices
 - ⚡ **WebSocket Streaming** - Real-time STT with minimal latency
+- 🔐 **HTTPS/WSS Support** - Connect securely to TLS-enabled bridge servers, with an option to ignore certificate errors for self-signed local certificates
 - 🔒 **100% Local** - All data stays on your Mac
-- 🌍 **Multi-Language** - German, English, and many more
+- 🌍 **Multi-Language** - English, German, and many more
 - 🎨 **Voice Assist Integration** - Seamless integration with HA Assist Pipeline
 
 ## 📋 Prerequisites
 
-1. **macOS Device** with macOS 13.0+
+1. **macOS Device** with macOS 14.0+
 2. **STT/TTS Bridge Server** running on the Mac
    - Download: [macos-stt-tts-bridge Releases](https://github.com/daydy16/macos-stt-tts-bridge/releases)
    - Or build from source
@@ -71,7 +72,13 @@ curl http://localhost:8787/voices
 4. Enter:
    - **Host:** IP of your Mac (e.g., `192.168.1.100` or `localhost` if on same device)
    - **Port:** `8787` (default)
-   - **(Optional) Token:** If you enabled auth on the server
+   - **(Optional) Token:** If you enabled auth on the server (Required if your STTBridge app is listening on anything other than 127.0.0.1)
+   - **Use HTTPS:** Enforces HTTPS/WSS connectivity
+   - **Ignore Certificate Errors:** Ignores any certificate errors when connecting via HTTPS/WSS
+   - **Use Say:** If you wish to use the macOS 'say' command to render Siri voices
+
+Use **Ignore Certificate Errors** only for trusted local bridge servers, such as a macOS bridge using a self-signed certificate. Leave it disabled when the server has a trusted certificate.
+
 
 ### 3. Use in Assist Pipeline
 
@@ -135,6 +142,14 @@ curl http://<mac-ip>:8787/voices
 tail -f /tmp/sttbridge.log
 ```
 
+### HTTPS Certificate Errors
+
+If your bridge is running with HTTPS and Home Assistant cannot connect:
+
+1. Enable **Use HTTPS** in the integration configuration or options.
+2. If the bridge uses a self-signed or locally issued certificate, enable **Ignore Certificate Errors**.
+3. For trusted public certificates, leave **Ignore Certificate Errors** disabled and verify the hostname matches the certificate.
+
 ### STT Not Working
 
 1. **Microphone Permission:** Ensure STTBridge.app has microphone access
@@ -172,13 +187,13 @@ Pull Requests are welcome! For major changes, please open an issue first.
 
 ## 📝 License
 
-MIT License
+MIT License — see [LICENSE](LICENSE).
 
 ## ⚠️ Disclaimer
 
 **Experimental AI-Generated Project!**
 
-This integration was developed with AI assistance (GitHub Copilot) and is a proof-of-concept.
+This integration was developed with AI assistance (GitHub Copilot * Claude Code) and is a proof-of-concept.
 It is provided "as-is" without warranties. Use at your own risk!
 
 ### Known Limitations
