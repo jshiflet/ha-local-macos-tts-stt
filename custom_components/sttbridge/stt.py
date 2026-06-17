@@ -62,7 +62,10 @@ class STTBridgeSTTProvider(stt.SpeechToTextEntity):
     @property
     def supported_languages(self) -> list[str]:
         """Return a list of supported languages."""
-        # TODO: Get from /voices endpoint
+        data = self.hass.data[DOMAIN][self._config_entry.entry_id]
+        coordinator = data.get("coordinator")
+        if coordinator and coordinator.data and "languages" in coordinator.data:
+            return coordinator.data["languages"]
         return ["de-DE", "en-US"]
 
     @property

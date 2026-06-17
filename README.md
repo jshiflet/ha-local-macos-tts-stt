@@ -13,7 +13,7 @@ Use Apple's high-quality, **100% local** Speech Recognition and Text-to-Speech d
 - ⚡ **WebSocket Streaming** - Real-time STT with minimal latency
 - 🔐 **HTTPS/WSS Support** - Connect securely to TLS-enabled bridge servers, with an option to ignore certificate errors for self-signed local certificates
 - 🔒 **100% Local** - All data stays on your Mac
-- 🌍 **Multi-Language** - English, German, and many more
+- 🌍 **Multi-Language** - English, German, and many more (Dynamically resolves supported languages from the server)
 - 🎨 **Voice Assist Integration** - Seamless integration with HA Assist Pipeline
 
 ## 📋 Prerequisites
