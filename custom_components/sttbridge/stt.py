@@ -109,7 +109,7 @@ class STTBridgeSTTProvider(stt.SpeechToTextEntity):
         try:
             _LOGGER.debug("Connecting to WebSocket: %s", ws_url)
             async with session.ws_connect(
-                ws_url, headers=headers, **self._ssl_kwargs
+                ws_url, headers=headers, heartbeat=30.0, **self._ssl_kwargs
             ) as ws:
                 # Start metadata message
                 await ws.send_json(
